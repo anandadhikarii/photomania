@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Mania 2026 | Prathibimb</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- AOS Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Custom Enhancements & Animations -->
+    <style>
+        /* Form & QR Enhancements */
+        .gpay-card-custom {
+            background: linear-gradient(145deg, #161619, #0a0a0c);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 380px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+        }
+        .qr-frame {
+            background: #fff;
+            padding: 12px;
+            border-radius: 16px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid #d4af37; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+        .qr-frame img {
+            border-radius: 8px;
+            width: 170px !important;
+            height: 170px !important;
+            object-fit: contain;
+        }
+
+        /* PhonePe Style Success Animation */
+        #successOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050505; z-index: 9999; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        #successOverlay.active { opacity: 1; pointer-events: auto; }
+        .checkmark__circle { stroke: #25d366; stroke-width: 2; stroke-dasharray: 166; stroke-dashoffset: 166; fill: none; animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards; }
+        .checkmark { width: 90px; height: 90px; border-radius: 50%; stroke-width: 2; stroke: #fff; stroke-miterlimit: 10; box-shadow: inset 0px 0px 0px #25d366; animation: fill .4s ease-in-out .4s forwards, scale .3s ease-in-out .9s both; }
+        .checkmark__check { transform-origin: 50% 50%; stroke-dasharray: 48; stroke-dashoffset: 48; animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.8s forwards; }
+        
+        @keyframes stroke { 100% { stroke-dashoffset: 0; } }
+        @keyframes scale { 0%, 100% { transform: none; } 50% { transform: scale3d(1.1, 1.1, 1); } }
+        @keyframes fill { 100% { box-shadow: inset 0px 0px 0px 50px #25d366; } }
+    </style>
+</head>
+<body>
+
+    <!-- Animated Tick Overlay -->
+    <div id="successOverlay">
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+            <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+            <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+        <h2 class="mt-4 fw-bold text-white">Registration Done!</h2>
+        <p class="text-muted text-center px-4 max-w-sm">Your payment proof is submitted. You will receive your official QR ticket via email upon verification.</p>
+    </div>
+
+    <!-- Elevated Hero Section with Cinematic Depth -->
+    <section class="hero-wrapper position-relative overflow-hidden">
+        
+        <!-- Layered Background Elements -->
+        <div class="hero-bg-image"></div>
+        <div class="hero-gradient-overlay"></div>
+        <div class="noise-overlay"></div>
+        
+        <!-- Navbar (Elevated z-index to sit above backgrounds) -->
+        <nav class="navbar navbar-expand-lg pt-4 px-3 px-lg-5 position-relative" style="z-index: 3;">
+            <div class="container-fluid">
+                <!-- LOGO INTEGRATION WITH TEXT -->
+                <a class="navbar-brand d-flex align-items-center gap-3" href="#">
+                    <img src="C:\Users\anand\Downloads\logo.jpeg" alt="Prathibimb Photography Club Logo" class="nav-logo">
+                    <div class="d-flex flex-column lh-1 mt-1">
+                        <span class="text-white fw-bold fs-4">PRATHIBIMB</span>
+                        <span class="theme-accent-text fw-semibold mt-1" style="font-size: 0.7rem; letter-spacing: 2px;">PHOTOGRAPHY CLUB</span>
+                    </div>
+                </a>
+                
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <i class="fa-solid fa-bars text-white"></i>
+                </button>
+                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                    <ul class="navbar-nav align-items-center gap-4">
+                        <li class="nav-item"><a class="nav-link text-white" href="#home">Home</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="#concepts">Concepts</a></li>
+                        <li class="nav-item"><a class="nav-link text-white" href="#details">Details</a></li>
+                        <li class="nav-item">
+                            <a href="#register" class="btn btn-pill-white">
+                                Register Now <i class="fa-solid fa-arrow-right ms-2"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Content -->
+        <div class="container hero-content d-flex flex-column justify-content-center position-relative" id="home" style="z-index: 3;">
+            <div class="row align-items-center mt-5 pt-5">
+                <div class="col-lg-7" data-aos="fade-up">
+                    <p class="mb-3 fw-bold fs-6 text-uppercase" style="color: rgba(255,255,255,0.6); letter-spacing: 3px;">Student Association Council Presents</p>
+                   <h1 class="display-1 fw-bold lh-1 mb-4 hero-title">
+                        <span class="hero-title-outline">Photo</span><br>
+                        <span class="text-glow-orange">Mania</span> <span class="text-white">2026</span>
+                    </h1>
+                </div>
+                <div class="col-lg-4 offset-lg-1 mt-4 mt-lg-0" data-aos="fade-up" data-aos-delay="100">
+                    <!-- Glassmorphism Highlight Box -->
+                    <div class="glass-form-card p-4 border-start border-4" style="border-left-color: var(--theme-accent) !important;">
+                        <h4 class="text-white fw-bold mb-3">Capture. Create. Inspire.</h4>
+                        <p class="text-white-50 fs-6 mb-4">
+                            Join the ultimate visual experience. Featuring exciting cash prizes, goodies, and recognition for the best creative minds.
+                        </p>
+                        <!-- Dynamic Event Dates Update -->
+                        <div class="d-flex flex-column gap-3 mt-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-white text-dark rounded px-3 py-2 fw-bold fs-6">13 AUG</div>
+                                <span class="text-white fw-semibold fs-6">Exclusive Workshops</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-white text-dark rounded px-3 py-2 fw-bold fs-6">14 AUG</div>
+                                <span class="text-white fw-semibold fs-6">Main Event & Competitions</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hero Bottom Stats/Categories -->
+            <div class="row mt-auto pb-5 hero-stats border-0" data-aos="fade-up" data-aos-delay="200">
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="stat-card p-3 rounded">
+                        <span class="theme-accent-text small fw-bold">#01</span>
+                        <p class="text-white mb-0 mt-1 fw-semibold small">Telangana Unfiltered</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="stat-card p-3 rounded">
+                        <span class="theme-accent-text small fw-bold">#02</span>
+                        <p class="text-white mb-0 mt-1 fw-semibold small">Minimal Architecture</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="stat-card p-3 rounded">
+                        <span class="theme-accent-text small fw-bold">#03</span>
+                        <p class="text-white mb-0 mt-1 fw-semibold small">Candid Photography</p>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-3">
+                    <div class="stat-card p-3 rounded">
+                        <span class="theme-accent-text small fw-bold">#04</span>
+                        <p class="text-white mb-0 mt-1 fw-semibold small">UGC Videography</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Glowing Prize Pool Section (Updated to 4 Columns) -->
+    <section class="py-5 position-relative overflow-hidden">
+        <!-- The Ambient Background Glow -->
+        <div class="ambient-glow"></div>
+        
+        <div class="container py-5 text-center position-relative" style="z-index: 2;">
+            <h5 class="theme-accent-text fw-bold mb-2" data-aos="fade-up">Why Compete?</h5>
+            <h2 class="display-5 fw-bold text-white mb-5" data-aos="fade-up" data-aos-delay="100">Massive <span class="theme-accent-text">Rewards</span></h2>
+            
+            <div class="row justify-content-center g-4">
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+                    <div class="glass-form-card p-4 p-xl-5 text-center h-100">
+                        <i class="fa-solid fa-trophy fa-3x theme-accent-text mb-4"></i>
+                        <h4 class="text-white fw-bold mb-2">Cash Prizes</h4>
+                        <p class="text-muted small mb-0">Compete across multiple categories for exciting monetary rewards.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+                    <div class="glass-form-card p-4 p-xl-5 text-center h-100">
+                        <i class="fa-solid fa-award fa-3x theme-accent-text mb-4"></i>
+                        <h4 class="text-white fw-bold mb-2">Certification</h4>
+                        <p class="text-muted small mb-0">Receive official recognition from a NAAC A+ and NBA Accredited institution.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+                    <div class="glass-form-card p-4 p-xl-5 text-center h-100">
+                        <i class="fa-solid fa-bullhorn fa-3x theme-accent-text mb-4"></i>
+                        <h4 class="text-white fw-bold mb-2">Exposure</h4>
+                        <p class="text-muted small mb-0">Top creators will have their portfolios featured on official platforms.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
+                    <div class="glass-form-card p-4 p-xl-5 text-center h-100">
+                        <i class="fa-solid fa-user-tie fa-3x theme-accent-text mb-4"></i>
+                        <h4 class="text-white fw-bold mb-2">Expert Interaction</h4>
+                        <p class="text-muted small mb-0">Learn and interact directly with industry professionals and seasoned experts.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Concepts Section (Dark Theme with B&W Images) -->
+    <section id="concepts" class="py-5 mt-5">
+        <div class="container py-5">
+            <div class="row align-items-end mb-5">
+                <div class="col-lg-6" data-aos="fade-right">
+                    <h5 class="theme-accent-text fw-bold mb-3">Behind the Lens</h5>
+                    <h2 class="display-4 fw-bold text-white lh-sm">
+                        Shaping<br>Experiences That<br>Tell Stories
+                    </h2>
+                </div>
+                <div class="col-lg-5 offset-lg-1 mt-4 mt-lg-0" data-aos="fade-left">
+                    <p class="text-muted fs-5 mb-4">
+                        We provide a platform for cinematic expression and technical mastery. Master the art of lighting, framing, and storytelling in real-world scenarios.
+                    </p>
+                    <a href="#register" class="btn btn-pill-orange">
+                        Register Your Spot <i class="fa-solid fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+
+           <!-- Image Grid -->
+            <div class="row g-4 mt-5">
+                <!-- Concept 1: Bonalu -->
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="100">
+                    <div class="concept-card">
+                        <img src="C:\Users\anand\Downloads\bon.jpeg" alt="Bonalu Concept" class="img-fluid bw-image w-100">
+                        <div class="concept-info mt-3">
+                            <h5 class="text-white fw-bold fs-6">Telangana Unfiltered</h5>
+                            <p class="text-muted small mb-0">Festival (Bonalu) captures.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Concept 2: Architecture -->
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="200">
+                    <div class="concept-card">
+                        <img src="C:\Users\anand\Downloads\arc.jpeg" alt="Architecture Concept" class="img-fluid bw-image w-100">
+                        <div class="concept-info mt-3">
+                            <h5 class="text-white fw-bold fs-6">Minimal Architecture</h5>
+                            <p class="text-muted small mb-0">Through my lens.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Concept 3: Candid -->
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="300">
+                    <div class="concept-card">
+                        <img src="C:\Users\anand\Downloads\cand.jpeg" alt="Candid Concept" class="img-fluid bw-image w-100">
+                        <div class="concept-info mt-3">
+                            <h5 class="text-white fw-bold fs-6">Candid Photography</h5>
+                            <p class="text-muted small mb-0">Raw emotion and life.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Concept 4: UGC -->
+                <div class="col-md-6 col-lg-3" data-aos="fade-up" data-aos-delay="400">
+                    <div class="concept-card">
+                        <img src="C:\Users\anand\Downloads\ugc.jpeg" alt="UGC Concept" class="img-fluid bw-image w-100">
+                        <div class="concept-info mt-3">
+                            <h5 class="text-white fw-bold fs-6">UGC Videography</h5>
+                            <p class="text-muted small mb-0">30-45sec product storytelling.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Details / Highlights Section (Updated to 6 Items) -->
+    <section id="details" class="py-5 bg-darker">
+        <div class="container py-5">
+            <h5 class="theme-accent-text fw-bold mb-5 text-center">Event Highlights</h5>
+            <div class="row g-4 text-center justify-content-center" data-aos="fade-up">
+                <div class="col-md-4 col-lg-2 col-6">
+                    <i class="fa-solid fa-users fa-2x text-white mb-3"></i>
+                    <p class="text-muted small fw-semibold">Open to all<br>Hyderabad Colleges</p>
+                </div>
+                <div class="col-md-4 col-lg-2 col-6">
+                    <i class="fa-solid fa-trophy fa-2x text-white mb-3"></i>
+                    <p class="text-muted small fw-semibold">Exciting<br>Cash Prizes</p>
+                </div>
+                <div class="col-md-4 col-lg-2 col-6">
+                    <i class="fa-solid fa-certificate fa-2x text-white mb-3"></i>
+                    <p class="text-muted small fw-semibold">Certificates for<br>all Participants</p>
+                </div>
+                <div class="col-md-4 col-lg-2 col-6">
+                    <i class="fa-regular fa-gem fa-2x text-white mb-3"></i>
+                    <p class="text-muted small fw-semibold">Best Work<br>Featured on Page</p>
+                </div>
+                <div class="col-md-4 col-lg-2 col-6">
+                    <i class="fa-solid fa-microphone-lines fa-2x text-white mb-3"></i>
+                    <p class="text-muted small fw-semibold">Interaction<br>with Experts</p>
+                </div>
+                <div class="col-md-4 col-lg-2 col-6">
+                    <i class="fa-solid fa-gift fa-2x text-white mb-3"></i>
+                    <p class="text-muted small fw-semibold">Goodies &<br>Surprises</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Registration Section -->
+    <section id="register" class="py-5">
+        <div class="container py-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <!-- Reduced blur and shadow for faster rendering -->
+                    <div class="glass-form-card p-4 p-md-5" style="backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);" data-aos="fade-up">
+                        <div class="text-center mb-5">
+                            <h2 class="text-white fw-bold mb-2">Secure Your Spot</h2>
+                            <p class="text-muted">Complete the steps below to finalize your registration.</p>
+                        </div>
+                        
+                        <form id="registrationForm">
+                            
+                            <!-- STEP 1: Details -->
+                            <h6 class="theme-accent-text fw-bold mb-4 border-bottom border-secondary-subtle pb-2">Step 1: Personal Details</h6>
+                            <div class="row g-4 mb-5">
+                                <div class="col-md-6">
+                                    <input type="text" id="regName" class="form-control theme-input py-2" placeholder="Full Name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="tel" id="regPhone" class="form-control theme-input py-2" placeholder="Phone Number (10 Digits)" pattern="\d{10}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="email" id="regEmail" class="form-control theme-input py-2" placeholder="Email Address" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" id="regCollege" class="form-control theme-input py-2" placeholder="College Name" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <select id="regYear" class="form-select theme-input py-2" required>
+                                        <option value="" disabled selected>Select Academic Year</option>
+                                        <option>1st Year</option>
+                                        <option>2nd Year</option>
+                                        <option>3rd Year</option>
+                                        <option>4th Year</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <select id="regBranch" class="form-select theme-input py-2" required>
+                                        <option value="" disabled selected>Select Branch</option>
+                                        <option>CSE</option>
+                                        <option>CSM</option>
+                                        <option>IT</option>
+                                        <option>ECE</option>
+                                        <option>EEE</option>
+                                        <option>MECH</option>
+                                        <option>CIVIL</option>
+                                        <option>Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- STEP 2: Package -->
+                            <h6 class="theme-accent-text fw-bold mb-4 border-bottom border-secondary-subtle pb-2">Step 2: Event Package</h6>
+                            <div class="d-flex flex-column gap-3 mb-5">
+                                <label class="theme-radio">
+                                    <input type="radio" name="eventCat" value="99" required>
+                                    <span class="radio-content">
+                                        <span><i class="fa-solid fa-camera me-2 text-muted"></i> Photography Competition <small class="text-muted d-block mt-1">14 Aug Event Only</small></span>
+                                        <span class="theme-accent-text fw-bold fs-5">₹99</span>
+                                    </span>
+                                </label>
+                                <label class="theme-radio">
+                                    <input type="radio" name="eventCat" value="149">
+                                    <span class="radio-content">
+                                        <span><i class="fa-solid fa-video me-2 text-muted"></i> Videography Competition <small class="text-muted d-block mt-1">14 Aug Event Only</small></span>
+                                        <span class="theme-accent-text fw-bold fs-5">₹149</span>
+                                    </span>
+                                </label>
+                                <label class="theme-radio">
+                                    <input type="radio" name="eventCat" value="199">
+                                    <span class="radio-content">
+                                        <span><i class="fa-solid fa-chalkboard-user me-2 text-muted"></i> Workshop + Photography <small class="text-muted d-block mt-1">13 Aug Workshop & 14 Aug Event</small></span>
+                                        <span class="theme-accent-text fw-bold fs-5">₹199</span>
+                                    </span>
+                                </label>
+                                <label class="theme-radio">
+                                    <input type="radio" name="eventCat" value="249">
+                                    <span class="radio-content">
+                                        <span><i class="fa-solid fa-film me-2 text-muted"></i> Workshop + Videography <small class="text-muted d-block mt-1">13 Aug Workshop & 14 Aug Event</small></span>
+                                        <span class="theme-accent-text fw-bold fs-5">₹249</span>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <!-- STEP 3: Payment (Custom Styled Widget) -->
+                            <div id="paymentWrapper" class="d-none">
+                                <h6 class="theme-accent-text fw-bold mb-4 border-bottom border-secondary-subtle pb-2">Step 3: Payment & Verification</h6>
+                                
+                                <!-- Centralized Payment Widget -->
+                                <div class="d-flex justify-content-center mb-5">
+                                    <div class="gpay-card-custom text-center mx-auto w-100">
+                                        <div class="gpay-header d-flex justify-content-center align-items-center gap-2 mb-3">
+                                            <div class="bg-dark text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" id="gpayAvatar" style="width: 35px; height: 35px;">V</div>
+                                            <h4 class="text-white fw-bold m-0" id="gpayName">Vardhan Kondeti</h4>
+                                        </div>
+                                        
+                                        <!-- Clean QR Code Frame -->
+                                        <div class="qr-frame my-3 d-none d-md-block">
+                                            <img id="qrImage" src="" alt="UPI QR Code" style="width: 180px; height: 180px;">
+                                        </div>
+                                        
+                                        <div class="gpay-details mt-2">
+                                            <p class="text-white-50 small mb-1">UPI ID: <span id="upiIdDisplay" class="text-white">vardhankondeti1@okicici</span></p>
+                                            <p class="text-white fw-bold fs-2 mb-0">₹<span id="displayFee">99.00</span></p>
+                                        </div>
+                                        
+                                        <!-- MOBILE DEEP LINK BUTTON FOR PHONEPE / GPAY -->
+                                        <a id="mobilePayBtn" href="#" class="btn btn-light rounded-pill w-100 fw-bold d-block d-md-none py-3 mt-4 shadow-sm">
+                                            <i class="fa-solid fa-mobile-screen me-2"></i> Pay via App
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="row g-4 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-white-50 small mb-2 ms-1">12-Digit UTR Number *</label>
+                                        <input type="text" id="regUtr" class="form-control theme-input py-2" placeholder="e.g., 321456789012" pattern="\d{12}" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label text-white-50 small mb-2 ms-1">Payment Screenshot *</label>
+                                        <input type="file" id="regScreenshot" class="form-control theme-input py-2" accept="image/*" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-pill-orange w-100 justify-content-center py-3 fs-5 mt-4 shadow">
+                                Submit Registration
+                            </button>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Clean, Responsive Footer -->
+    <footer class="site-footer pt-5 pb-3">
+        <div class="container">
+            <div class="row justify-content-between g-4 mb-5">
+                <!-- College Info -->
+                <div class="col-12 col-lg-4">
+                    <h4 class="text-white fw-bold mb-3">TKRCET (K9)</h4>
+                    <p class="text-muted small mb-1">TKR College of Engineering and Technology (Autonomous)</p>
+                    <p class="text-muted small mb-3">Medbowli, Meerpet, Hyderabad - 500097</p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge bg-light text-dark">NAAC A+</span>
+                        <span class="badge bg-light text-dark">NBA ACCREDITED</span>
+                    </div>
+                </div>
+                <!-- Leadership -->
+                <div class="col-12 col-md-6 col-lg-4">
+                    <h5 class="text-white fw-bold mb-3">Leadership</h5>
+                    <div class="mb-3"><span class="text-white small fw-bold">Patron:</span><p class="text-muted small mb-0">Dr. A. Ramaswami Reddy</p></div>
+                    <div><span class="text-white small fw-bold">Chief Patrons:</span><p class="text-muted small mb-0 lh-sm">Sri Teegala Krishna Reddy Garu<br>Sri Teegala Harinath Reddy Garu<br>Sri Teegala Amarnath Reddy Garu</p></div>
+                </div>
+                <!-- Contact -->
+                <div class="col-12 col-md-6 col-lg-3">
+                    <h5 class="text-white fw-bold mb-3">Contact</h5>
+                    <div class="mb-3"><span class="text-white small fw-bold">Coordinator:</span><p class="text-muted small mb-0">J. Rama Krishna</p></div>
+                    <div class="mb-3"><span class="text-white small fw-bold">Queries:</span><p class="text-muted small mb-0">K. Lokavardhan (7989571843)<br>MD. Owais (7671837369)</p></div>
+                     <div class="mb-3"><span class="text-white small fw-bold">F&Qs:</span><p class="text-muted small mb-0">A. Anand (7893029353)<br>T. narasimha (77118835)</p></div>
+                    <div class="d-flex gap-3 mt-4">
+                        <a href="https://instagram.com/prat.hibimb" class="social-icon" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="login.html" class="social-icon"><i class="fa-regular fa-envelope"></i></a>
+                    </div>
+                </div>
+            </div>
+            <!-- Copyright -->
+            <div class="text-center pt-4 border-top border-secondary-subtle">
+                <p class="text-muted small mb-0">© 2026 Student Association Council | Prathibimb Photography Club</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <!-- All Scripting Logic for UI, Payment & Database Posting -->
+    <script>
+        AOS.init({ duration: 800, once: true });
+
+        const eventRadios = document.querySelectorAll('input[name="eventCat"]');
+        const paymentWrapper = document.getElementById('paymentWrapper');
+        
+        const paymentData = {
+            '99': { upi: '7989571843@okbizaxis', name: 'kondeti lokavardhan' },
+            '149': { upi: '7989571843@okbizaxis', name: 'kondeti lokavardhan' },
+            '199': { upi: '7989571843@okbizaxis', name: 'kondeti lokavardhan' },
+            '249': { upi: '7989571843@okbizaxis', name: 'kondeti lokavardhan' }
+        };
+
+        eventRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const val = e.target.value;
+                const data = paymentData[val];
+                paymentWrapper.classList.remove('d-none');
+                
+                document.getElementById('displayFee').innerText = val + '.00';
+                document.getElementById('upiIdDisplay').innerText = data.upi;
+                document.getElementById('gpayName').innerText = data.name;
+                document.getElementById('gpayAvatar').innerText = data.name.charAt(0);
+                
+                // Creates deep link for PhonePe, Paytm, etc.
+                const upiString = `upi://pay?pa=${data.upi}&pn=${encodeURIComponent(data.name)}&am=${val}.00&cu=INR`;
+                document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
+                document.getElementById('mobilePayBtn').href = upiString;
+            });
+        });
+
+        // Form Submit Handler
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-2"></i> Submitting...';
+            submitBtn.disabled = true;
+
+            try {
+                // 1. Upload Screenshot to Cloudinary
+                const fileData = new FormData();
+                fileData.append('file', document.getElementById('regScreenshot').files[0]);
+                fileData.append('upload_preset', "photomania_preset");
+
+                const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/v1svygp1/image/upload`, { method: 'POST', body: fileData });
+                const imageJson = await cloudRes.json();
+                if (!imageJson.secure_url) throw new Error("Image upload failed.");
+                
+                // 2. Post Data to your Server
+                 const dbRes = await fetch('http://192.168.29.120:5000/api/register', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        fullName: document.getElementById('regName').value.trim(),
+                        phone: document.getElementById('regPhone').value.trim(),
+                        email: document.getElementById('regEmail').value.trim(),
+                        college: document.getElementById('regCollege').value.trim(),
+                        year: document.getElementById('regYear').value,
+                        branch: document.getElementById('regBranch').value,
+                        eventCat: Number(document.querySelector('input[name="eventCat"]:checked').value),
+                        utrNumber: document.getElementById('regUtr').value.trim(),
+                        screenshotUrl: imageJson.secure_url
+                    })
+                });
+
+                if (dbRes.status === 201) {
+                    // Trigger Full-Screen Green Tick Animation
+                    document.getElementById('successOverlay').classList.add('active');
+                    
+                    setTimeout(() => {
+                        e.target.reset();
+                        paymentWrapper.classList.add('d-none');
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                        document.getElementById('successOverlay').classList.remove('active');
+                        window.scrollTo(0,0);
+                    }, 4000); // 4 seconds before resetting page
+                } else {
+                    const err = await dbRes.json();
+                    alert(err.message || "Error submitting.");
+                    submitBtn.innerHTML = originalText; submitBtn.disabled = false;
+                }
+            } catch (err) {
+                alert("Network error. Please try again.");
+                submitBtn.innerHTML = originalText; submitBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
