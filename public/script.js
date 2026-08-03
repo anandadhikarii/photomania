@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 // 2. Send payload to your Express Backend
                 // IP Address updated for mobile testing (change back to deployed URL later)
-                const dbResponse = await fetch('http://192.168.29.120:5000/api/register', {
+                const dbResponse = await fetch('https://photomania-backend-mr7b.onrender.com/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

@@ -55,7 +55,6 @@ app.post('/api/register', async (req, res) => {
 });
 
 // --- 4. Admin Dashboard Routes ---
-// Get Pending Approvals
 app.get('/api/admin/pending', async (req, res) => {
   try {
     const pending = await Registration.find({ status: 'pending' }).sort({ createdAt: -1 });
@@ -65,7 +64,6 @@ app.get('/api/admin/pending', async (req, res) => {
   }
 });
 
-// Get Scanned Attendees List
 app.get('/api/admin/scanned', async (req, res) => {
   try {
     const scanned = await Registration.find({ status: 'checked-in' }).sort({ updatedAt: -1 });
@@ -75,7 +73,6 @@ app.get('/api/admin/scanned', async (req, res) => {
   }
 });
 
-// Get Dashboard Analytics
 app.get('/api/admin/stats', async (req, res) => {
   try {
     const all = await Registration.find();
@@ -91,14 +88,12 @@ app.get('/api/admin/stats', async (req, res) => {
   }
 });
 
-// Export Data to Excel/CSV (Formats numbers so Excel doesn't use scientific notation)
 app.get('/api/admin/export', async (req, res) => {
   try {
     const users = await Registration.find().sort({ createdAt: -1 });
     let csv = 'Name,Phone,Email,College,Year,Branch,Package,UTR,Status,Ticket ID,Date\n';
     
     users.forEach(u => {
-      // Using ="" prevents Excel from rendering 10-digit phones or 12-digit UTRs as 9.87E+11
       csv += `"${u.fullName}","=""${u.phone}""","${u.email}","${u.college}","${u.year}","${u.branch}","₹${u.eventCat}","=""${u.utrNumber}""","${u.status}","${u.ticketId || 'Pending'}","${u.createdAt.toLocaleDateString()}"\n`;
     });
 
@@ -189,4 +184,5 @@ app.post('/api/verify/:ticketId', async (req, res) => {
   }
 });
 
+module.exports = app;
 app.listen(process.env.PORT || 5000, () => console.log(`Server running on port ${process.env.PORT || 5000}!`));

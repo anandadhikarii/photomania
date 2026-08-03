@@ -123,7 +123,7 @@
                 <div id="scannedLoader" class="text-center py-5 text-muted small fw-semibold">Loading checked-in attendees...</div>
             </div>
 
-            <!-- 4. SCANNER TAB (Upgraded with Manual Entry) -->
+            <!-- 4. SCANNER TAB -->
             <div class="tab-pane fade" id="scannerTab">
                 <div class="row justify-content-center">
                     <div class="col-lg-6">
@@ -175,7 +175,7 @@
         // --- DASHBOARD LOGIC ---
         async function loadDashboard() {
             try {
-                const res = await fetch('http://localhost:5000/api/admin/stats');
+                const res = await fetch('/api/admin/stats');
                 const stats = await res.json();
                 document.getElementById('statTotal').innerText = stats.totalRegistrations;
                 document.getElementById('statApproved').innerText = stats.approved;
@@ -185,7 +185,7 @@
         }
 
         function downloadExcel() {
-            window.open('http://localhost:5000/api/admin/export', '_blank');
+            window.open('/api/admin/export', '_blank');
         }
 
         // --- APPROVALS LOGIC ---
@@ -194,7 +194,7 @@
             const loader = document.getElementById('tableLoader');
             tbody.innerHTML = ''; loader.style.display = 'block';
             try {
-                const res = await fetch('http://localhost:5000/api/admin/pending');
+                const res = await fetch('/api/admin/pending');
                 const data = await res.json();
                 loader.style.display = 'none';
                 if(data.length === 0) { loader.innerText = "No pending approvals."; loader.style.display = 'block'; return; }
@@ -214,7 +214,7 @@
         async function approve(id) {
             if(!confirm("Are you sure you want to approve this payment and email the ticket?")) return;
             try {
-                await fetch(`http://localhost:5000/api/admin/approve/${id}`, { method: 'POST' });
+                await fetch(`/api/admin/approve/${id}`, { method: 'POST' });
                 loadApprovals(); loadDashboard();
             } catch(e) { alert("Error approving request."); }
         }
@@ -225,7 +225,7 @@
             const loader = document.getElementById('scannedLoader');
             tbody.innerHTML = ''; loader.style.display = 'block';
             try {
-                const res = await fetch('http://localhost:5000/api/admin/scanned');
+                const res = await fetch('/api/admin/scanned');
                 const data = await res.json();
                 loader.style.display = 'none';
                 if(data.length === 0) { loader.innerText = "No attendees checked in yet."; loader.style.display = 'block'; return; }
@@ -244,7 +244,7 @@
             } catch(e) { loader.innerText = "Error loading scanned list."; }
         }
 
-        // --- UNIFIED GATE SCANNER & MANUAL OVERRIDE LOGIC ---
+        // --- GATE SCANNER & MANUAL OVERRIDE LOGIC ---
         let html5QrCode;
         
         function initScanner() {
@@ -258,23 +258,19 @@
                 { facingMode: "environment" }, 
                 { fps: 10, qrbox: { width: 250, height: 250 } }, 
                 (decodedText) => {
-                    // Extract ID from URL if they scanned a QR
                     const extractedId = decodedText.includes('/') ? decodedText.split('/').pop() : decodedText;
                     verifyTicket(extractedId);
                 }
             ).catch(e => console.log("Camera init error:", e));
         }
 
-        // Triggered by the "Verify" button
         function handleManualSubmit() {
             const inputVal = document.getElementById('manualTicketInput').value.trim().toUpperCase();
             if(!inputVal) return alert("Please enter a Ticket ID");
             verifyTicket(inputVal);
         }
 
-        // The core verification engine (Used by both Camera and Manual entry)
         async function verifyTicket(ticketId) {
-            // Stop camera if running
             try { await html5QrCode.stop(); } catch(e) {}
             
             document.getElementById('reader').style.display = 'none';
@@ -287,7 +283,6 @@
             document.getElementById('statusText').className = "fw-bold text-center mb-3 pb-2 border-bottom border-secondary-subtle text-white";
             resBox.className = "result-box bg-dark text-start shadow-lg";
             
-            // Clear old data visually
             document.getElementById('scanId').innerText = ticketId;
             document.getElementById('scanName').innerText = "...";
             document.getElementById('scanPhone').innerText = "...";
@@ -297,10 +292,9 @@
             document.getElementById('scanPackage').innerText = "...";
 
             try {
-                const res = await fetch(`http://localhost:5000/api/verify/${ticketId}`, { method: 'POST' });
+                const res = await fetch(`/api/verify/${ticketId}`, { method: 'POST' });
                 const data = await res.json();
                 
-                // Populate data if user exists
                 if (data.user) {
                     document.getElementById('scanId').innerText = data.user.ticketId;
                     document.getElementById('scanName').innerText = data.user.name;
@@ -311,14 +305,12 @@
                     document.getElementById('scanPackage').innerText = data.user.package;
                 }
 
-                // Handle HTTP Statuses
                 if (res.status === 200) {
                     resBox.className = "result-box success-bg text-start shadow-lg";
                     document.getElementById('statusText').innerText = "ACCESS GRANTED";
                     document.getElementById('statusText').className = "fw-bold text-center mb-3 pb-2 border-bottom border-success text-success";
-                    
-                    loadDashboard(); // Live stat bump
-                    loadScanned();   // Live roster bump
+                    loadDashboard();
+                    loadScanned();
                 } 
                 else if (res.status === 400 && data.message.includes("ALREADY")) {
                     resBox.className = "result-box warning-bg text-start shadow-lg";
@@ -336,12 +328,10 @@
             }
         }
 
-        // Restarts the process
         function resetScanner() { 
             initScanner(); 
         }
 
-        // Initialize view
         loadDashboard();
     </script>
 </body>
