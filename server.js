@@ -165,7 +165,7 @@ app.post('/api/admin/approve/:id', async (req, res) => {
             </div>
         </div>
       `;
-      sendSmtpEmail.sender = { name: "Photo Mania 2026", email: "prathibimbtkrcet@gmail.com" };
+      sendSmtpEmail.sender = { name: "Photo Mania 2026", email: "contact@photomania.com" };
       sendSmtpEmail.to = [{ email: user.email.trim(), name: user.fullName.trim() }];
 
       try {
