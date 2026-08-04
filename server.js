@@ -4,7 +4,11 @@ const cors = require('cors');
 const nodemailer = require('nodemailer');
 const QRCode = require('qrcode');
 const path = require('path');
-require('dotenv').config();
+
+// Safely load dotenv only if not in production environment
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 const app = express();
 app.use(cors());
@@ -207,9 +211,6 @@ app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-module.exports = app;
-
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}!`));
-}
+// Always listen on the port provided by Render or default to 5000 locally
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}!`));
