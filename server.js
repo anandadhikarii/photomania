@@ -142,7 +142,10 @@ app.post('/api/admin/approve/:id', async (req, res) => {
     if (!user || user.status !== 'pending') return res.status(400).json({ message: "Invalid request." });
 
     const ticketId = 'PM26-' + Math.random().toString(36).substring(2, 7).toUpperCase();
-    const qrCodeDataURI = await QRCode.toDataURL(`https://photomania.com/verify/${ticketId}`);
+    
+    // Dynamically uses Render URL instead of static photomania.com domain
+    const appUrl = process.env.RENDER_EXTERNAL_URL || `https://photomania-lof9.onrender.com`;
+    const qrCodeDataURI = await QRCode.toDataURL(`${appUrl}/verify/${ticketId}`);
     const base64Data = qrCodeDataURI.split(',')[1];
 
     const mailOptions = {
@@ -175,7 +178,8 @@ app.post('/api/admin/approve/:id', async (req, res) => {
 
     res.status(200).json({ message: "Ticket emailed successfully!" });
   } catch (error) {
-    res.status(500).json({ message: "Failed to approve and send email." });
+    console.error("Detailed Approval & Email Error:", error);
+    res.status(500).json({ message: "Failed to approve and send email.", error: error.message });
   }
 });
 
@@ -202,6 +206,7 @@ app.post('/api/verify/:ticketId', async (req, res) => {
 
     res.status(400).json({ success: false, message: "Ticket pending approval." });
   } catch (error) {
+    console.error("Verification Error:", error);
     res.status(500).json({ success: false, message: "Scanner error." });
   }
 });
