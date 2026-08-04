@@ -16,7 +16,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mongoose": "^9.9.1",
-    "nodemailer": "^9.0.3",
+    "nodemailer": "^9.0.4",
     "qrcode": "^1.5.4"
   }
 }

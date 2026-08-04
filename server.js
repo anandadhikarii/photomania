@@ -3,9 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const QRCode = require('qrcode');
 const path = require('path');
-const SibApiV3Sdk = require('@getbrevo/brevo');
+const nodemailer = require('nodemailer');
 
-// Safely load dotenv only if not in production environment
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
@@ -14,10 +13,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from 'public'
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Safe Database Connection with Serverless Caching & Timeouts
+// Configure Nodemailer with Gmail credentials from Render environment variables
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
 let cachedConnection = null;
 async function connectDB() {
   if (cachedConnection && mongoose.connection.readyState === 1) return cachedConnection;
@@ -28,12 +34,11 @@ async function connectDB() {
     bufferCommands: false,
     serverSelectionTimeoutMS: 15000,
     socketTimeoutMS: 45000,
-    family: 4 // Forces IPv4 to bypass local DNS resolution hangs
+    family: 4 
   });
   return cachedConnection;
 }
 
-// Scoped Database Middleware exclusively for API routes
 app.use('/api', async (req, res, next) => {
   try {
     await connectDB();
@@ -60,7 +65,6 @@ const registrationSchema = new mongoose.Schema({
 
 const Registration = mongoose.models.Registration || mongoose.model('Registration', registrationSchema);
 
-// --- API Routes ---
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
   if (password === process.env.ADMIN_PASS) {
@@ -140,20 +144,16 @@ app.post('/api/admin/approve/:id', async (req, res) => {
     const appUrl = process.env.RENDER_EXTERNAL_URL || `https://photomania-lof9.onrender.com`;
     const qrCodeDataURI = await QRCode.toDataURL(`${appUrl}/verify/${ticketId}`);
 
-    // Update database first
     user.status = 'approved';
     user.ticketId = ticketId;
     await user.save();
 
-    // Send email using official Brevo SDK with verified sender
-    if (process.env.BREVO_API_KEY) {
-      let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-      let apiKey = apiInstance.authentications['apiKey'];
-      apiKey.apiKey = process.env.BREVO_API_KEY.trim();
-
-      let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-      sendSmtpEmail.subject = "Your Photo Mania 2026 Ticket!";
-      sendSmtpEmail.htmlContent = `
+    // Send email via Nodemailer using Gmail credentials
+    const mailOptions = {
+      from: `"Photo Mania 2026" <${process.env.EMAIL_USER}>`,
+      to: user.email.trim(),
+      subject: "Your Photo Mania 2026 Ticket!",
+      html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111; color: #fff; padding: 30px; border-radius: 15px;">
             <h1 style="color: #d4af37; text-align: center;">Ticket Confirmed!</h1>
             <p>Hi <b>${user.fullName}</b>,</p>
@@ -164,19 +164,11 @@ app.post('/api/admin/approve/:id', async (req, res) => {
                 <img src="${qrCodeDataURI}" alt="QR Ticket" style="width: 200px; height: 200px; border: 4px solid #fff; border-radius: 10px; margin-top: 15px;" />
             </div>
         </div>
-      `;
-      sendSmtpEmail.sender = { name: "Photo Mania 2026", email: "prathibimbtkrcet@gmail.com" };
-      sendSmtpEmail.to = [{ email: user.email.trim(), name: user.fullName.trim() }];
+      `
+    };
 
-      try {
-        const result = await apiInstance.sendTransacEmail(sendSmtpEmail);
-        console.log("Brevo SDK Email Sent Success:", JSON.stringify(result));
-      } catch (sdkError) {
-        console.error("Brevo SDK Error Details:", sdkError.response ? sdkError.response.text : sdkError.message);
-      }
-    } else {
-      console.warn("WARNING: BREVO_API_KEY is missing from environment variables!");
-    }
+    await transporter.sendMail(mailOptions);
+    console.log("Nodemailer Email Sent Successfully to:", user.email);
 
     res.status(200).json({ message: "Approved and ticket emailed successfully!" });
   } catch (error) {
@@ -213,11 +205,9 @@ app.post('/api/verify/:ticketId', async (req, res) => {
   }
 });
 
-// Correct Express 5 wildcard routing fallback
 app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Always listen on the port provided by Render or default to 5000 locally
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}!`));
