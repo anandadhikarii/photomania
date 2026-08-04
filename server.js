@@ -143,43 +143,15 @@ app.post('/api/admin/approve/:id', async (req, res) => {
 
     const ticketId = 'PM26-' + Math.random().toString(36).substring(2, 7).toUpperCase();
     
-    // Dynamically uses Render URL instead of static photomania.com domain
-    const appUrl = process.env.RENDER_EXTERNAL_URL || `https://photomania-lof9.onrender.com`;
-    const qrCodeDataURI = await QRCode.toDataURL(`${appUrl}/verify/${ticketId}`);
-    const base64Data = qrCodeDataURI.split(',')[1];
-
-    const mailOptions = {
-      from: `"Photo Mania 2026" <${process.env.EMAIL_USER}>`,
-      to: user.email,
-      subject: "Your Photo Mania 2026 Ticket!",
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111; color: #fff; padding: 30px; border-radius: 15px;">
-            <h1 style="color: #d4af37; text-align: center;">Ticket Confirmed!</h1>
-            <p>Hi <b>${user.fullName}</b>,</p>
-            <p>Your payment of ₹${user.eventCat} is verified.</p>
-            <div style="background-color: #222; padding: 20px; border-radius: 10px; text-align: center;">
-                <h2 style="color: #fff;">ID: <span style="color: #d4af37;">${ticketId}</span></h2>
-                <img src="cid:ticketqr" alt="QR Ticket" style="width: 200px; height: 200px; border: 4px solid #fff; border-radius: 10px; margin-top: 15px;" />
-            </div>
-        </div>
-      `,
-      attachments: [{
-        filename: 'qr-ticket.png',
-        content: base64Data,
-        encoding: 'base64',
-        cid: 'ticketqr'
-      }]
-    };
-
-    await transporter.sendMail(mailOptions);
+    // Bypass SMTP timeout blocks on Render free tier by updating status directly
     user.status = 'approved';
     user.ticketId = ticketId;
     await user.save();
 
-    res.status(200).json({ message: "Ticket emailed successfully!" });
+    res.status(200).json({ message: "Registration approved successfully!" });
   } catch (error) {
-    console.error("Detailed Approval & Email Error:", error);
-    res.status(500).json({ message: "Failed to approve and send email.", error: error.message });
+    console.error("Detailed Approval Error:", error);
+    res.status(500).json({ message: "Failed to approve registration.", error: error.message });
   }
 });
 
