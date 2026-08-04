@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
 const QRCode = require('qrcode');
 const path = require('path');
 
@@ -131,27 +130,55 @@ app.get('/api/admin/export', async (req, res) => {
   }
 });
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
-});
-
 app.post('/api/admin/approve/:id', async (req, res) => {
   try {
     const user = await Registration.findById(req.params.id);
     if (!user || user.status !== 'pending') return res.status(400).json({ message: "Invalid request." });
 
     const ticketId = 'PM26-' + Math.random().toString(36).substring(2, 7).toUpperCase();
-    
-    // Bypass SMTP timeout blocks on Render free tier by updating status directly
+    const appUrl = process.env.RENDER_EXTERNAL_URL || `https://photomania-lof9.onrender.com`;
+    const qrCodeDataURI = await QRCode.toDataURL(`${appUrl}/verify/${ticketId}`);
+
+    // Update database
     user.status = 'approved';
     user.ticketId = ticketId;
     await user.save();
 
-    res.status(200).json({ message: "Registration approved successfully!" });
+    // Send email using Brevo API via HTTPS (Bypasses Render SMTP port blocks)
+    if (process.env.BREVO_API_KEY) {
+      const emailData = {
+        sender: { name: "Photo Mania 2026", email: process.env.EMAIL_USER || "prathibimbtkrcet.com@gmail.com" },
+        to: [{ email: user.email, name: user.fullName }],
+        subject: "Your Photo Mania 2026 Ticket!",
+        htmlContent: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111; color: #fff; padding: 30px; border-radius: 15px;">
+              <h1 style="color: #d4af37; text-align: center;">Ticket Confirmed!</h1>
+              <p>Hi <b>${user.fullName}</b>,</p>
+              <p>Your payment of ₹${user.eventCat} is verified.</p>
+              <div style="background-color: #222; padding: 20px; border-radius: 10px; text-align: center;">
+                  <h2 style="color: #fff;">ID: <span style="color: #d4af37;">${ticketId}</span></h2>
+                  <p>Scan your QR code at the entrance:</p>
+                  <img src="${qrCodeDataURI}" alt="QR Ticket" style="width: 200px; height: 200px; border: 4px solid #fff; border-radius: 10px; margin-top: 15px;" />
+              </div>
+          </div>
+        `
+      };
+
+      await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': process.env.BREVO_API_KEY,
+          'content-type': 'application/json'
+        },
+        body: JSON.stringify(emailData)
+      });
+    }
+
+    res.status(200).json({ message: "Approved and ticket emailed successfully!" });
   } catch (error) {
-    console.error("Detailed Approval Error:", error);
-    res.status(500).json({ message: "Failed to approve registration.", error: error.message });
+    console.error("Detailed Approval & Email Error:", error);
+    res.status(500).json({ message: "Failed to approve and send email.", error: error.message });
   }
 });
 
