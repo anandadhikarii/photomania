@@ -457,93 +457,9 @@
         </div>
     </footer>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    
-    <script>
-        AOS.init({ duration: 800, once: true });
-
-        const eventRadios = document.querySelectorAll('input[name="eventCat"]');
-        const paymentWrapper = document.getElementById('paymentWrapper');
-        
-        const paymentData = {
-            '99': { upi: '7989571843@okbizaxis', name: 'kondeti lokavardhan' },
-            '149': { upi: '7989571843@okbizaxis', name: 'kondeti lokavardhan' },
-            '199': { upi: '7989571843@okbizaxis', name: 'kondeti lokavardhan' },
-            '249': { upi: '7989571843@okbizaxis', name: 'kondeti lokavardhan' }
-        };
-
-        eventRadios.forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                const val = e.target.value;
-                const data = paymentData[val];
-                paymentWrapper.classList.remove('d-none');
-                
-                document.getElementById('displayFee').innerText = val + '.00';
-                document.getElementById('upiIdDisplay').innerText = data.upi;
-                document.getElementById('gpayName').innerText = data.name;
-                document.getElementById('gpayAvatar').innerText = data.name.charAt(0);
-                
-                const upiString = `upi://pay?pa=${data.upi}&pn=${encodeURIComponent(data.name)}&am=${val}.00&cu=INR`;
-                document.getElementById('qrImage').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
-                document.getElementById('mobilePayBtn').href = upiString;
-            });
-        });
-
-        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            
-            submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-2"></i> Submitting...';
-            submitBtn.disabled = true;
-
-            try {
-                const fileData = new FormData();
-                fileData.append('file', document.getElementById('regScreenshot').files[0]);
-                fileData.append('upload_preset', "photomania_preset");
-
-                const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/v1svygp1/image/upload`, { method: 'POST', body: fileData });
-                const imageJson = await cloudRes.json();
-                if (!imageJson.secure_url) throw new Error("Image upload failed.");
-                
-                // FIXED: Changed from local IP to relative path for Vercel
-                const dbRes = await fetch('/api/register', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        fullName: document.getElementById('regName').value.trim(),
-                        phone: document.getElementById('regPhone').value.trim(),
-                        email: document.getElementById('regEmail').value.trim(),
-                        college: document.getElementById('regCollege').value.trim(),
-                        year: document.getElementById('regYear').value,
-                        branch: document.getElementById('regBranch').value,
-                        eventCat: Number(document.querySelector('input[name="eventCat"]:checked').value),
-                        utrNumber: document.getElementById('regUtr').value.trim(),
-                        screenshotUrl: imageJson.secure_url
-                    })
-                });
-
-                if (dbRes.status === 201) {
-                    document.getElementById('successOverlay').classList.add('active');
-                    
-                    setTimeout(() => {
-                        e.target.reset();
-                        paymentWrapper.classList.add('d-none');
-                        submitBtn.innerHTML = originalText;
-                        submitBtn.disabled = false;
-                        document.getElementById('successOverlay').classList.remove('active');
-                        window.scrollTo(0,0);
-                    }, 4000);
-                } else {
-                    const err = await dbRes.json();
-                    alert(err.message || "Error submitting.");
-                    submitBtn.innerHTML = originalText; submitBtn.disabled = false;
-                }
-            } catch (err) {
-                alert("Network error. Please try again.");
-                submitBtn.innerHTML = originalText; submitBtn.disabled = false;
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>

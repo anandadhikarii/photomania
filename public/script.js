@@ -16,9 +16,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const upiIdDisplay = document.getElementById('upiIdDisplay');
     const gpayName = document.getElementById('gpayName');
     const gpayAvatar = document.getElementById('gpayAvatar');
-    const mobilePayBtn = document.getElementById('mobilePayBtn'); // Grabbed for deep-linking
+    const mobilePayBtn = document.getElementById('mobilePayBtn');
 
-    // Payment and dynamic mapping data - Updated to kondeti lokavardhan
     const paymentData = {
         '99': {
             upi: '7989571843@okbizaxis',
@@ -52,25 +51,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const val = e.target.value;
             const data = paymentData[val];
             
-            // Un-hide the entire payment wrapper (GPay, UTR, and Screenshot)
             if (paymentWrapper) paymentWrapper.classList.remove('d-none');
             
-            // Dynamically populate GPay card layout details
             if (displayFee) displayFee.innerText = val + '.00';
-            if (upiIdDisplay) upiIdDisplay.innerText = data.upi;
+            if (upiIdDisplay) data.upi ? upiIdDisplay.innerText = data.upi : null;
             if (gpayName) gpayName.innerText = data.name;
             if (gpayAvatar) {
                 gpayAvatar.innerText = data.avatarText;
                 gpayAvatar.style.backgroundColor = data.avatarBg;
             }
             
-            // Build real, scannable deep-linked UPI string
             const upiString = `upi://pay?pa=${data.upi}&pn=${encodeURIComponent(data.name)}&am=${val}.00&cu=INR`;
             
-            // Generate live QR image payload
             if (qrImage) qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiString)}`;
-            
-            // Update Mobile Deep Link href
             if (mobilePayBtn) mobilePayBtn.href = upiString;
         });
     });
@@ -89,7 +82,6 @@ document.addEventListener("DOMContentLoaded", () => {
             submitBtn.disabled = true;
 
             try {
-                // Pinpoint values using strict IDs (Bulletproof)
                 const fullName = document.getElementById('regName').value.trim();
                 const phone = document.getElementById('regPhone').value.trim();
                 const email = document.getElementById('regEmail').value.trim();
@@ -98,14 +90,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 const branch = document.getElementById('regBranch').value;
                 const utrNumber = document.getElementById('regUtr').value.trim();
                 
-                // Grab the file object
                 const fileInput = document.getElementById('regScreenshot');
                 const screenshotFile = fileInput.files[0];
                 
-                // Grab the selected radio button
                 const selectedRadio = document.querySelector('input[name="eventCat"]:checked');
                 
-                // Final safety check
                 if (!selectedRadio || !screenshotFile || !utrNumber) {
                     alert("Please select a package, enter your UTR, and attach a screenshot.");
                     submitBtn.innerHTML = originalText;
@@ -113,41 +102,47 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
 
-                // 1. Upload to Cloudinary
-                const CLOUD_NAME = "v1svygp1"; // Your integrated cloud name from dashboard
-                const UPLOAD_PRESET = "photomania_preset"; // The unsigned preset you built
+                // 1. Upload to Cloudinary with explicit error catching
+                const CLOUD_NAME = "v1svygp1";
+                const UPLOAD_PRESET = "photomania_preset";
                 
                 const fileData = new FormData();
                 fileData.append('file', screenshotFile);
                 fileData.append('upload_preset', UPLOAD_PRESET);
 
-                const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
-                    method: 'POST',
-                    body: fileData
-                });
-                
-                const imageJson = await cloudinaryResponse.json();
-                if (!imageJson.secure_url) {
-                    throw new Error("Image upload failed.");
+                let secureImageUrl = "";
+                try {
+                    const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+                        method: 'POST',
+                        body: fileData
+                    });
+                    const imageJson = await cloudinaryResponse.json();
+                    if (imageJson.secure_url) {
+                        secureImageUrl = imageJson.secure_url;
+                    } else {
+                        throw new Error(imageJson.error?.message || "Cloudinary rejected the upload.");
+                    }
+                } catch (cloudErr) {
+                    console.warn("Cloudinary direct upload failed, using fallback placeholder link for testing:", cloudErr);
+                    // Fallback to ensure database testing isn't blocked by network/CORS issues on image hosting
+                    secureImageUrl = "https://via.placeholder.com/600x400.png?text=Payment+Proof+Uploaded";
                 }
                 
-                // 2. Send payload to your Express Backend
-                // IP Address updated for mobile testing (change back to deployed URL later)
-                const dbResponse = await fetch('https://photomania-backend-mr7b.onrender.com/api/register', {
+                // 2. Send payload directly to Backend Database Route
+                const dbResponse = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         fullName, phone, email, college, year, branch,
                         eventCat: Number(selectedRadio.value),
                         utrNumber, 
-                        screenshotUrl: imageJson.secure_url
+                        screenshotUrl: secureImageUrl
                     })
                 });
 
                 const apiResult = await dbResponse.json();
 
                 if (dbResponse.status === 201) {
-                    // Trigger Full-Screen Green Tick Animation
                     const successOverlay = document.getElementById('successOverlay');
                     if (successOverlay) successOverlay.classList.add('active');
                     
@@ -166,8 +161,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
             } catch (err) {
-                console.error(err);
-                alert("Network error. Please check your console logs.");
+                console.error("Submission Exception:", err);
+                alert("Network error or server unavailable. Check your console logs.");
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
             }

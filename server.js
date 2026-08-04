@@ -3,16 +3,42 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
 const QRCode = require('qrcode');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --- 1. Database Connection & Schema ---
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("Connected to MongoDB Atlas"))
-  .catch(err => console.error("MongoDB connection error:", err));
+// Serve static files from 'public'
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Safe Database Connection with Serverless Caching & Timeouts
+let cachedConnection = null;
+async function connectDB() {
+  if (cachedConnection && mongoose.connection.readyState === 1) return cachedConnection;
+  if (!process.env.MONGO_URI) {
+    throw new Error("MONGO_URI environment variable is missing!");
+  }
+  cachedConnection = await mongoose.connect(process.env.MONGO_URI, { 
+    bufferCommands: false,
+    serverSelectionTimeoutMS: 15000,
+    socketTimeoutMS: 45000,
+    family: 4 // Forces IPv4 to bypass local DNS resolution hangs
+  });
+  return cachedConnection;
+}
+
+// Scoped Database Middleware exclusively for API routes
+app.use('/api', async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("DB Connection Middleware Error:", err);
+    res.status(500).json({ message: "Database connection failed.", error: err.message });
+  }
+});
 
 const registrationSchema = new mongoose.Schema({
   fullName: { type: String, required: true },
@@ -28,9 +54,9 @@ const registrationSchema = new mongoose.Schema({
   ticketId: { type: String, default: null }
 }, { timestamps: true });
 
-const Registration = mongoose.model('Registration', registrationSchema);
+const Registration = mongoose.models.Registration || mongoose.model('Registration', registrationSchema);
 
-// --- 2. Admin Login Route ---
+// --- API Routes ---
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
   if (password === process.env.ADMIN_PASS) {
@@ -40,7 +66,6 @@ app.post('/api/admin/login', (req, res) => {
   }
 });
 
-// --- 3. Registration Route ---
 app.post('/api/register', async (req, res) => {
   try {
     const existingUtr = await Registration.findOne({ utrNumber: req.body.utrNumber });
@@ -50,11 +75,11 @@ app.post('/api/register', async (req, res) => {
     await newRegistration.save();
     res.status(201).json({ message: "Registration successful." });
   } catch (error) {
-    res.status(500).json({ message: "Server error during registration." });
+    console.error("Registration Error:", error);
+    res.status(500).json({ message: "Server error during registration.", error: error.message });
   }
 });
 
-// --- 4. Admin Dashboard Routes ---
 app.get('/api/admin/pending', async (req, res) => {
   try {
     const pending = await Registration.find({ status: 'pending' }).sort({ createdAt: -1 });
@@ -81,7 +106,6 @@ app.get('/api/admin/stats', async (req, res) => {
     const approved = all.filter(r => r.status === 'approved' || r.status === 'checked-in');
     const checkedIn = all.filter(r => r.status === 'checked-in').length;
     const totalFunds = approved.reduce((sum, user) => sum + user.eventCat, 0);
-
     res.status(200).json({ totalRegistrations, pending, approved: approved.length, checkedIn, totalFunds });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch stats." });
@@ -92,11 +116,9 @@ app.get('/api/admin/export', async (req, res) => {
   try {
     const users = await Registration.find().sort({ createdAt: -1 });
     let csv = 'Name,Phone,Email,College,Year,Branch,Package,UTR,Status,Ticket ID,Date\n';
-    
     users.forEach(u => {
       csv += `"${u.fullName}","=""${u.phone}""","${u.email}","${u.college}","${u.year}","${u.branch}","₹${u.eventCat}","=""${u.utrNumber}""","${u.status}","${u.ticketId || 'Pending'}","${u.createdAt.toLocaleDateString()}"\n`;
     });
-
     res.header('Content-Type', 'text/csv');
     res.attachment('PhotoMania_Registrations.csv');
     res.send(csv);
@@ -105,7 +127,6 @@ app.get('/api/admin/export', async (req, res) => {
   }
 });
 
-// --- 5. Ticket Approval & Emailing ---
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
@@ -144,19 +165,16 @@ app.post('/api/admin/approve/:id', async (req, res) => {
     };
 
     await transporter.sendMail(mailOptions);
-
     user.status = 'approved';
     user.ticketId = ticketId;
     await user.save();
 
     res.status(200).json({ message: "Ticket emailed successfully!" });
   } catch (error) {
-    console.error("Email Error:", error);
     res.status(500).json({ message: "Failed to approve and send email." });
   }
 });
 
-// --- 6. Gate Scanner Endpoint ---
 app.post('/api/verify/:ticketId', async (req, res) => {
   try {
     const user = await Registration.findOne({ ticketId: req.params.ticketId });
@@ -184,5 +202,14 @@ app.post('/api/verify/:ticketId', async (req, res) => {
   }
 });
 
+// Correct Express 5 wildcard routing fallback
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 module.exports = app;
-app.listen(process.env.PORT || 5000, () => console.log(`Server running on port ${process.env.PORT || 5000}!`));
+
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}!`));
+}
