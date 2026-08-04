@@ -145,7 +145,7 @@ app.post('/api/admin/approve/:id', async (req, res) => {
     user.ticketId = ticketId;
     await user.save();
 
-    // Send email using official Brevo SDK
+    // Send email using official Brevo SDK with verified sender
     if (process.env.BREVO_API_KEY) {
       let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
       let apiKey = apiInstance.authentications['apiKey'];
@@ -165,7 +165,7 @@ app.post('/api/admin/approve/:id', async (req, res) => {
             </div>
         </div>
       `;
-      sendSmtpEmail.sender = { name: "Photo Mania 2026", email: "contact@photomania.com" };
+      sendSmtpEmail.sender = { name: "Photo Mania 2026", email: "prathibimbtkrcet@gmail.com" };
       sendSmtpEmail.to = [{ email: user.email.trim(), name: user.fullName.trim() }];
 
       try {
