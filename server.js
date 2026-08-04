@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const QRCode = require('qrcode');
 const path = require('path');
+const SibApiV3Sdk = require('@getbrevo/brevo');
 
 // Safely load dotenv only if not in production environment
 if (process.env.NODE_ENV !== 'production') {
@@ -139,40 +140,35 @@ app.post('/api/admin/approve/:id', async (req, res) => {
     const appUrl = process.env.RENDER_EXTERNAL_URL || `https://photomania-lof9.onrender.com`;
     const qrCodeDataURI = await QRCode.toDataURL(`${appUrl}/verify/${ticketId}`);
 
-    // Update database
+    // Update database first
     user.status = 'approved';
     user.ticketId = ticketId;
     await user.save();
 
-    // Send email using Brevo API via HTTPS (Bypasses Render SMTP port blocks)
+    // Send email using official Brevo SDK
     if (process.env.BREVO_API_KEY) {
-      const emailData = {
-        sender: { name: "Photo Mania 2026", email: process.env.EMAIL_USER || "prathibimbtkrcet.com@gmail.com" },
-        to: [{ email: user.email, name: user.fullName }],
-        subject: "Your Photo Mania 2026 Ticket!",
-        htmlContent: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111; color: #fff; padding: 30px; border-radius: 15px;">
-              <h1 style="color: #d4af37; text-align: center;">Ticket Confirmed!</h1>
-              <p>Hi <b>${user.fullName}</b>,</p>
-              <p>Your payment of ₹${user.eventCat} is verified.</p>
-              <div style="background-color: #222; padding: 20px; border-radius: 10px; text-align: center;">
-                  <h2 style="color: #fff;">ID: <span style="color: #d4af37;">${ticketId}</span></h2>
-                  <p>Scan your QR code at the entrance:</p>
-                  <img src="${qrCodeDataURI}" alt="QR Ticket" style="width: 200px; height: 200px; border: 4px solid #fff; border-radius: 10px; margin-top: 15px;" />
-              </div>
-          </div>
-        `
-      };
+      let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+      let apiKey = apiInstance.authentications['apiKey'];
+      apiKey.apiKey = process.env.BREVO_API_KEY;
 
-      await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'api-key': process.env.BREVO_API_KEY,
-          'content-type': 'application/json'
-        },
-        body: JSON.stringify(emailData)
-      });
+      let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+      sendSmtpEmail.subject = "Your Photo Mania 2026 Ticket!";
+      sendSmtpEmail.htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #111; color: #fff; padding: 30px; border-radius: 15px;">
+            <h1 style="color: #d4af37; text-align: center;">Ticket Confirmed!</h1>
+            <p>Hi <b>${user.fullName}</b>,</p>
+            <p>Your payment of ₹${user.eventCat} is verified.</p>
+            <div style="background-color: #222; padding: 20px; border-radius: 10px; text-align: center;">
+                <h2 style="color: #fff;">ID: <span style="color: #d4af37;">${ticketId}</span></h2>
+                <p>Scan your QR code at the entrance:</p>
+                <img src="${qrCodeDataURI}" alt="QR Ticket" style="width: 200px; height: 200px; border: 4px solid #fff; border-radius: 10px; margin-top: 15px;" />
+            </div>
+        </div>
+      `;
+      sendSmtpEmail.sender = { name: "Photo Mania 2026", email: "prathibimbtkrcet.com@gmail.com" };
+      sendSmtpEmail.to = [{ email: user.email, name: user.fullName }];
+
+      await apiInstance.sendTransacEmail(sendSmtpEmail);
     }
 
     res.status(200).json({ message: "Approved and ticket emailed successfully!" });
